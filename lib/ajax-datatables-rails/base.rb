@@ -11,6 +11,27 @@ module AjaxDatatablesRails
       @options = options
     end
 
+    def filter_relation(relation)
+      if filter.present?
+        # ToDo Lion: is this secure/fast/awesome?
+        qry = []
+        filter.each do | k, v |
+          qry << "(" + v.map{|n|
+
+            if n.nil? or n.empty?
+              "(#{k} IS NULL or #{k} = '')"
+            else
+              "#{k} = '#{n}'"
+            end
+
+          }.join(" OR ") + ")"
+
+        end
+        relation = relation.where(qry.join(" AND "))
+      end
+      relation
+    end
+
     def sortable_columns
       @sortable_columns ||= []
     end
