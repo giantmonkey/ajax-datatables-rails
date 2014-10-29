@@ -63,11 +63,11 @@ module AjaxDatatablesRails
       }
     end
 
-    private
-
     def records
       @records ||= fetch_records
     end
+
+    private
 
     def fetch_records
       records = get_raw_records
