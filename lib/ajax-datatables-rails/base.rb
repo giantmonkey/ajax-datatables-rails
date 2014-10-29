@@ -82,7 +82,7 @@ module AjaxDatatablesRails
       params[:order].each_value do |item|
         sort_by << "#{sort_column(item)} #{sort_direction(item)}"
       end
-      records.order(sort_by.join(", "))
+      records.order(sort_by.join(", ").gsub("::", "_"))
     end
 
     def paginate_records(records)
@@ -121,7 +121,7 @@ module AjaxDatatablesRails
 
     def search_condition(column, value)
       model, column = column.split('.')
-      model = model.singularize.titleize.gsub( / /, '' ).constantize
+      model = model.singularize.titleize.gsub( / /, '' ).gsub("/","::").constantize
       casted_column = ::Arel::Nodes::NamedFunction.new('CAST', [model.arel_table[column.to_sym].as('VARCHAR')])
       casted_column.matches("%#{value}%")
     end
