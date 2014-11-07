@@ -13,19 +13,21 @@ module AjaxDatatablesRails
 
     def filter_relation(relation)
       if filter.present?
-        # ToDo Lion: is this secure/fast/awesome?
         qry = []
         filter.each do | k, v |
-          qry << "(" + v.map{|n|
+          if k.end_with?("_at") and v.size == 2
+            qry << "( #{k} >= '#{v[0].to_time.beginning_of_day}' AND #{k} <= '#{v[1].to_time.end_of_day}' )"
+          else
+            qry << "(" + v.map{|n|
 
-            if n.nil? or n.empty?
-              "(#{k} IS NULL or #{k} = '')"
-            else
-              "#{k} = '#{n}'"
-            end
+              if n.nil? or n.empty?
+                "(#{k} IS NULL or #{k} = '')"
+              else
+                "#{k} = '#{n}'"
+              end
 
-          }.join(" OR ") + ")"
-
+            }.join(" OR ") + ")"
+          end
         end
         relation = relation.where(qry.join(" AND "))
       end
