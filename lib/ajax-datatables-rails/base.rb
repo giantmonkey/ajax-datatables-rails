@@ -15,9 +15,10 @@ module AjaxDatatablesRails
       if filter.present?
         qry = []
         filter.each do | k, v |
-          if k.end_with?("_at") and v.size == 2
-            start_at = v[0].to_time
-            end_at = v[1].to_time
+          # ToDo: detect field type
+          if (v[0] == "in-between") and v.size == 3
+            start_at = v[1].to_time
+            end_at = v[2].to_time
             qry << "( #{k} >= '#{start_at.beginning_of_day}' AND #{k} <= '#{end_at.end_of_day}' )" if start_at.present? and end_at.present?
           else
             qry << "(" + v.map{|n|
