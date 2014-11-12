@@ -15,19 +15,15 @@ module AjaxDatatablesRails
       if filter.present?
         qry = []
         filter.each do | k, v |
-          if k.end_with?("_at") and v.size == 2
-            qry << "( #{k} >= '#{v[0].to_time.beginning_of_day}' AND #{k} <= '#{v[1].to_time.end_of_day}' )"
-          else
-            qry << "(" + v.map{|n|
+          qry << "(" + v.map{|n|
 
-              if n.nil? or n.empty?
-                "(#{k} IS NULL or #{k} = '')"
-              else
-                "#{k} = '#{n}'"
-              end
+            if n.nil? or n.empty?
+              "(#{k} IS NULL or #{k} = '')"
+            else
+              "#{k} = '#{n}'"
+            end
 
-            }.join(" OR ") + ")"
-          end
+          }.join(" OR ") + ")"
         end
         relation = relation.where(qry.join(" AND "))
       end
