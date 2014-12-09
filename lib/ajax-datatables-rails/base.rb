@@ -112,16 +112,15 @@ module AjaxDatatablesRails
     def build_conditions_for(query)
       search_for = query.split(' ')
       criteria = search_for.inject([]) do |criteria, atom|
-        criteria << searchable_columns.map { |col| search_condition(col, atom) }.reduce(:or)
-      end.reduce(:and)
+        criteria << searchable_columns.map { |col| search_condition(col, atom) }.reduce{|memo, node| Arel::Nodes::Grouping.new Arel::Nodes::Or.new(memo, node)}
+      end.reduce{|memo, node| Arel::Nodes::Grouping.new Arel::Nodes::And.new(memo, node)}
       criteria
     end
 
     def search_condition(column, value)
       model, column = column.split('.')
       model = model.singularize.titleize.gsub( / /, '' ).gsub("/","::").constantize
-      casted_column = ::Arel::Nodes::NamedFunction.new('CAST', [::Arel::Nodes::SqlLiteral.new(model.arel_table[column.to_sym].as('VARCHAR').to_sql)])
-      casted_column.matches("%#{value}%")
+      casted_column = ::Arel::Nodes::SqlLiteral.new("CAST(#{model.table_name}.#{column} AS VARCHAR) ILIKE #{ActiveRecord::Base.connection.quote("%#{value}%")}")
     end
 
     def aggregate_query
@@ -129,7 +128,7 @@ module AjaxDatatablesRails
         value = params[:columns]["#{index}"][:search][:value] if params[:columns]
         search_condition(column, value) unless value.blank?
       end
-      conditions.compact.reduce(:and)
+      conditions.compact.reduce{|memo, node| Arel::Nodes::Grouping.new Arel::Nodes::And.new(memo, node)}
     end
 
     def offset
