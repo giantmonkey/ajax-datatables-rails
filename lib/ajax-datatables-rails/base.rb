@@ -112,8 +112,8 @@ module AjaxDatatablesRails
     def build_conditions_for(query)
       search_for = query.split(' ')
       criteria = search_for.inject([]) do |criteria, atom|
-        criteria << searchable_columns.map { |col| search_condition(col, atom) }.reduce{|memo, node| Arel::Nodes::Grouping.new Arel::Nodes::Or.new(memo, node)}
-      end.reduce{|memo, node| Arel::Nodes::Grouping.new Arel::Nodes::And.new(memo, node)}
+        criteria << searchable_columns.map { |col| search_condition(col, atom) }.reduce{|memo, node| Arel::Nodes::Grouping.new Arel::Nodes::Or.new([memo, node])}
+      end.reduce{|memo, node| Arel::Nodes::Grouping.new Arel::Nodes::And.new([memo, node])}
       criteria
     end
 
@@ -128,7 +128,7 @@ module AjaxDatatablesRails
         value = params[:columns]["#{index}"][:search][:value] if params[:columns]
         search_condition(column, value) unless value.blank?
       end
-      conditions.compact.reduce{|memo, node| Arel::Nodes::Grouping.new Arel::Nodes::And.new(memo, node)}
+      conditions.compact.reduce{|memo, node| Arel::Nodes::Grouping.new Arel::Nodes::And.new([memo, node])}
     end
 
     def offset
